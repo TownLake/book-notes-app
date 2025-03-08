@@ -1,0 +1,18 @@
+// wrangler.jsonc
+{
+    "name": "book-notes-app",
+    "compatibility_date": "2025-02-11",
+    
+    // Configuration for Pages deployment
+    "site": {
+      "bucket": "./dist"
+    },
+    
+    // Build configuration
+    "build": {
+      "command": "npm run build"
+    },
+    
+    // Environment variables (if any)
+    "vars": {}
+  }
