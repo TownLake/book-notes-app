@@ -1,0 +1,9 @@
+// File: emoji-worker/wrangler.jsonc
+{
+  "name": "emoji-generator",
+  "main": "src/index.js",
+  "compatibility_date": "2025-03-07",
+  "ai": {
+    "binding": "AI"
+  }
+}
