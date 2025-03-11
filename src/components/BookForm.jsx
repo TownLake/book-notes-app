@@ -158,7 +158,7 @@ const BookForm = ({ setMarkdownContent }) => {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Book Search Query* 
+            Book 
           </label>
           <input
             type="text"
@@ -169,9 +169,6 @@ const BookForm = ({ setMarkdownContent }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="e.g. The Great Gatsby F Scott Fitzgerald"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Input the title and author
-          </p>
           {metadataFetched && (
             <div className="mt-1 text-sm text-green-600">
               <span className="font-medium">Title from Amazon:</span> {displayTitle}
@@ -234,7 +231,7 @@ const BookForm = ({ setMarkdownContent }) => {
             value={formData.placesRead.custom}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Other places (optional)"
+            placeholder="Other places"
           />
         </div>
 

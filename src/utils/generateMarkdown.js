@@ -1,5 +1,55 @@
-// book-notes-app/src/utils/generateMarkdown.js
+// File: book-notes-app/src/utils/generateMarkdown.js
+// Path: book-notes-app/src/utils/generateMarkdown.js
 import { format as formatDate } from 'date-fns';
+
+/**
+ * Fetches thematic emojis for a book based on its description
+ * @param {string} description - Book description
+ * @param {string} title - Book title
+ * @param {string} author - Book author
+ * @returns {Promise<string>} - Two emojis that represent the book
+ */
+export const fetchBookEmojis = async (description, title, author) => {
+  try {
+    if (!description || description === 'Not found') {
+      return null;
+    }
+    
+    // Call the emoji generator worker
+    const response = await fetch('https://emoji-generator.samrhea.workers.dev/generate-emojis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        description,
+        title,
+        author
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error('Error fetching book emojis:', await response.text());
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.emojis;
+  } catch (error) {
+    console.error('Error fetching book emojis:', error);
+    return null;
+  }
+};
+
+/**
+ * Gets random book-related emojis as a fallback
+ * @returns {string} - Two random book-related emojis
+ */
+const getRandomBookEmojis = () => {
+  const bookEmojis = ['📚', '📖', '📘', '📕', '📙', '📗', '🧠', '✍️', '🔖', '📝', '🧐', '🤓', '👓', '🖋️'];
+  const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
+  return `${getRandomEmoji()}${getRandomEmoji()}`;
+};
 
 /**
  * Generates markdown template for book notes with proper casing for titles and authors
@@ -22,7 +72,9 @@ export const generateMarkdown = (bookData) => {
     // New fields
     frontmatterDescription, // Form-input description for frontmatter
     whyReadIt,
-    notes
+    notes,
+    // New emoji field
+    bookEmojis
   } = bookData;
   
   // Generate slug from title and current year
@@ -33,10 +85,8 @@ export const generateMarkdown = (bookData) => {
   // Format dates for display
   const formattedDateFinished = formatDate(new Date(dateFinished), 'yyyy-MM-dd');
   
-  // Create emoji prefix (random book-related emoji combination)
-  const bookEmojis = ['📚', '📖', '📘', '📕', '📙', '📗', '🧠', '✍️', '🔖', '📝', '🧐', '🤓', '👓', '🖋️'];
-  const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
-  const emojiPrefix = `${getRandomEmoji()}${getRandomEmoji()}`;
+  // Use provided book emojis or random fallback
+  const emojiPrefix = bookEmojis || getRandomBookEmojis();
   
   const markdown = `---
 title: "${emojiPrefix} ${title} by ${author}"
@@ -59,6 +109,7 @@ description: "${frontmatterDescription || 'TBD'}"
 ${whyReadIt || '[To be filled]'}
 
 ## What is it?
+
 |Category|Value|
 |---|---|
 |**Title**|*${title}*|
@@ -73,6 +124,7 @@ ${whyReadIt || '[To be filled]'}
 ${apiDescription && apiDescription !== 'Not found' ? apiDescription : '[Publisher summary to be filled]'}
 
 ## How did I read it?
+
 |Category|Value|
 |---|---|
 |**Date Started**|${dateStarted ? formatDate(new Date(dateStarted), 'MMMM d, yyyy') : '[To be filled]'}|
@@ -88,10 +140,10 @@ ${notes ? notes.split('\n').map(note => `* ${note}`).join('\n') : '* [Your notes
 };
 
 /**
- * Generates markdown with fetched metadata, ensuring proper title/author from metadata
+ * Generates markdown with fetched metadata and thematic emojis
  * @param {Object} formData - Form data
  * @param {Object} metadata - Fetched metadata from Amazon
- * @returns {string} - Generated markdown content
+ * @returns {Promise<string>} - Generated markdown content
  */
 export const generateMarkdownWithMetadata = async (formData, metadata) => {
   try {
@@ -109,6 +161,17 @@ export const generateMarkdownWithMetadata = async (formData, metadata) => {
     console.log('Using title from metadata:', title);
     console.log('Using author from metadata:', author);
     
+    // Get book description from metadata
+    const description = metadata.description !== 'Not found' ? metadata.description : null;
+    
+    // Fetch thematic emojis based on description
+    let bookEmojis = null;
+    if (description) {
+      console.log('Fetching thematic emojis for book based on description');
+      bookEmojis = await fetchBookEmojis(description, title, author);
+      console.log('Generated book emojis:', bookEmojis);
+    }
+    
     // Clean metadata values
     const cleanMetadata = {
       title: title, // Explicitly use the metadata title
@@ -116,7 +179,8 @@ export const generateMarkdownWithMetadata = async (formData, metadata) => {
       yearPublished: metadata.yearPublished !== 'Not found' ? metadata.yearPublished : '',
       pageLength: metadata.pageLength !== 'Not found' ? metadata.pageLength : '',
       asin: metadata.asin !== 'Not found' ? metadata.asin : '',
-      description: metadata.description !== 'Not found' ? metadata.description : ''
+      description: metadata.description !== 'Not found' ? metadata.description : '',
+      bookEmojis: bookEmojis // Add the generated emojis
     };
     
     // Create a new object with form data and metadata
