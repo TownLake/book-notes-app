@@ -18,7 +18,11 @@ export const generateMarkdown = (bookData) => {
     yearPublished,
     pageLength,
     asin,
-    description
+    description: apiDescription, // API-sourced description
+    // New fields
+    frontmatterDescription, // Form-input description for frontmatter
+    whyReadIt,
+    notes
   } = bookData;
   
   // Generate slug from title and current year
@@ -34,21 +38,6 @@ export const generateMarkdown = (bookData) => {
   const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
   const emojiPrefix = `${getRandomEmoji()}${getRandomEmoji()}`;
   
-  // Create description from book metadata or use default
-  const metaDescription = description && description !== 'Not found'
-    ? `Notes on "${title}" by ${author}.` 
-    : "Fun to finally finish it.";
-  
-  // Truncate the description if too long
-  const truncatedDescription = metaDescription.length > 150 
-    ? metaDescription.substring(0, 147) + '...' 
-    : metaDescription;
-  
-  // Create a clean Amazon link for the book if we have an ASIN
-  const amazonLink = asin && asin !== 'Not found'
-    ? `https://www.amazon.com/dp/${asin}/` 
-    : null;
-  
   const markdown = `---
 title: "${emojiPrefix} ${title} by ${author}"
 date: "${formattedDateFinished}"
@@ -59,14 +48,15 @@ category: "reading"
 tags:
   - "reading"
   - "books"
-description: "${truncatedDescription}"
+description: "${frontmatterDescription || 'TBD'}"
 ---
 
 > ## Not a Book Report
 > I enjoy [reflecting](https://blog.samrhea.com/posts/2019/analyze-media-habits) on the movies, TV, books and other media that I consume. I'm notoriously sentimental. This [series](https://blog.samrhea.com/category/reading) documents the books that I read. These aren't reviews or recommendations. Just a list. For me. Mostly so that I can page through what I read, where I was, and when.
 
 ## Why did I read it?
-[Your reasons for reading this book]
+
+${whyReadIt || '[To be filled]'}
 
 ## What is it?
 |Category|Value|
@@ -75,11 +65,12 @@ description: "${truncatedDescription}"
 |**Author**|${author}|
 |**Year Published**|${yearPublished || '[To be filled]'}|
 |**Format**|${format}|
-|**Pages**|${pageLength || '[To be filled]'}|${amazonLink ? `\n|**Amazon**|[Link](${amazonLink})` : ''}
-|**ASIN**|${asin !== 'Not found' ? asin : '[To be filled]'}|
+|**Pages**|${pageLength || '[To be filled]'}|${asin && asin !== 'Not found' ? `\n|**Amazon**|[Link](https://www.amazon.com/dp/${asin}/)` : ''}
+|**ASIN**|${asin && asin !== 'Not found' ? asin : '[To be filled]'}|
 
 ### Publisher Summary
-${description !== 'Not found' ? description : '[Publisher summary to be filled]'}
+
+${apiDescription && apiDescription !== 'Not found' ? apiDescription : '[Publisher summary to be filled]'}
 
 ## How did I read it?
 |Category|Value|
@@ -89,7 +80,8 @@ ${description !== 'Not found' ? description : '[Publisher summary to be filled]'
 |**Places Read**|${placesRead || '[To be filled]'}|
 
 ## Notes - No Spoilers
-* [Your notes here]
+
+${notes ? notes.split('\n').map(note => `* ${note}`).join('\n') : '* [Your notes here]'}
 `;
 
   return markdown;

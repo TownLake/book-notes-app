@@ -4,13 +4,21 @@ import { generateMarkdown, generateMarkdownWithMetadata } from '../utils/generat
 import { findBookAndMetadata, fetchBookMetadata, findBookUrl } from '../services/bookService';
 import LoadingSpinner from './LoadingSpinner';
 
+const PREDEFINED_PLACES = ['Lisbon', 'Sintra'];
+
 const BookForm = ({ setMarkdownContent }) => {
   const [formData, setFormData] = useState({
     title: '',
     dateStarted: '',
     dateFinished: new Date().toISOString().split('T')[0],
-    placesRead: 'Lisbon, Sintra',
-    format: 'Paperback',
+    placesRead: {
+      predefined: [],
+      custom: ''
+    },
+    format: 'Kindle',
+    frontmatterDescription: '', // Renamed from description
+    whyReadIt: '',
+    notes: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -18,13 +26,38 @@ const BookForm = ({ setMarkdownContent }) => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [metadataFetched, setMetadataFetched] = useState(false);
   const [fetchedMetadata, setFetchedMetadata] = useState(null);
+  const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    const { name, value, type, checked } = e.target;
+    
+    if (name === 'placesRead') {
+      // Handle predefined places checkboxes
+      setFormData(prev => ({
+        ...prev,
+        placesRead: {
+          ...prev.placesRead,
+          predefined: checked 
+            ? [...prev.placesRead.predefined, value]
+            : prev.placesRead.predefined.filter(place => place !== value)
+        }
+      }));
+    } else if (name === 'placesReadCustom') {
+      // Handle custom places input
+      setFormData(prev => ({
+        ...prev,
+        placesRead: {
+          ...prev.placesRead,
+          custom: value
+        }
+      }));
+    } else {
+      // Handle other form fields
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
     
     // Reset metadata fetched flag when user changes the title field
     if (name === 'title') {
@@ -66,8 +99,20 @@ const BookForm = ({ setMarkdownContent }) => {
       console.log('Using metadata:', metadata);
       setLoadingMessage('Generating markdown template...');
 
+      // Combine predefined and custom places
+      const placesRead = [
+        ...formData.placesRead.predefined,
+        ...(formData.placesRead.custom ? [formData.placesRead.custom] : [])
+      ].join(', ');
+
+      // Create a modified form data with combined places
+      const modifiedFormData = {
+        ...formData,
+        placesRead
+      };
+
       // Generate markdown with metadata, explicitly passing metadata title/author
-      const markdown = await generateMarkdownWithMetadata(formData, metadata);
+      const markdown = await generateMarkdownWithMetadata(modifiedFormData, metadata);
       setMarkdownContent(markdown);
     } catch (error) {
       console.error('Error fetching book metadata:', error);
@@ -76,8 +121,20 @@ const BookForm = ({ setMarkdownContent }) => {
       const errorMessage = `Failed to fetch book metadata: ${error.message}. Generating basic template instead.`;
       setError(errorMessage);
 
+      // Combine predefined and custom places
+      const placesRead = [
+        ...formData.placesRead.predefined,
+        ...(formData.placesRead.custom ? [formData.placesRead.custom] : [])
+      ].join(', ');
+
+      // Create a modified form data with combined places
+      const modifiedFormData = {
+        ...formData,
+        placesRead
+      };
+
       // Fallback to basic template
-      const basicMarkdown = generateMarkdown(formData);
+      const basicMarkdown = generateMarkdown(modifiedFormData);
       setMarkdownContent(basicMarkdown);
     } finally {
       setIsLoading(false);
@@ -156,13 +213,28 @@ const BookForm = ({ setMarkdownContent }) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Places Read
           </label>
+          <div className="mb-2">
+            {PREDEFINED_PLACES.map(place => (
+              <label key={place} className="inline-flex items-center mr-4 mb-2">
+                <input
+                  type="checkbox"
+                  name="placesRead"
+                  value={place}
+                  checked={formData.placesRead.predefined.includes(place)}
+                  onChange={handleChange}
+                  className="form-checkbox h-4 w-4 text-speedmaster-accent"
+                />
+                <span className="ml-2">{place}</span>
+              </label>
+            ))}
+          </div>
           <input
             type="text"
-            name="placesRead"
-            value={formData.placesRead}
+            name="placesReadCustom"
+            value={formData.placesRead.custom}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="e.g. Lisbon, Sintra"
+            placeholder="Other places (optional)"
           />
         </div>
 
@@ -176,12 +248,70 @@ const BookForm = ({ setMarkdownContent }) => {
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           >
+            <option value="Kindle">Kindle</option>
             <option value="Paperback">Paperback</option>
             <option value="Hardcover">Hardcover</option>
-            <option value="Kindle">Kindle</option>
             <option value="iPhone (Kindle App)">iPhone (Kindle App)</option>
             <option value="Audible">Audible</option>
           </select>
+        </div>
+
+        {/* Expandable Notes Section */}
+        <div>
+          <div 
+            className="flex items-center cursor-pointer mb-2"
+            onClick={() => setIsNotesExpanded(!isNotesExpanded)}
+          >
+            <span className="font-medium text-sm text-gray-700">
+              Write Notes {isNotesExpanded ? '▼' : '▶'}
+            </span>
+          </div>
+          
+          {isNotesExpanded && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Front Matter)
+                </label>
+                <textarea
+                  name="frontmatterDescription"
+                  value={formData.frontmatterDescription}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  rows="3"
+                  placeholder="Short description for the front matter"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Why Did I Read It?
+                </label>
+                <textarea
+                  name="whyReadIt"
+                  value={formData.whyReadIt}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  rows="3"
+                  placeholder="Your reasons for reading this book"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes (No Spoilers)
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  rows="5"
+                  placeholder="Your thoughts and notes about the book (no spoilers)"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (
