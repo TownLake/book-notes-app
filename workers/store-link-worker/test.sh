@@ -1,1 +1,0 @@
-curl "https://book-finder.samrhea.workers.dev/search?query=Artemis+Andy+Weir"
