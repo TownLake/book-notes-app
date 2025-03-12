@@ -3,8 +3,18 @@ const BOOK_FINDER_API = 'https://book-finder.samrhea.workers.dev';
 const AMAZON_SCRAPER_API = 'https://amazon-product-scraper.samrhea.workers.dev';
 const EMOJI_GENERATOR_API = 'https://emoji-generator.samrhea.workers.dev';
 
+// Service token credentials from environment variables
+// For Vite, use import.meta.env instead of process.env
+const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID || '';
+const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET || '';
+
+console.log('ENV Variables Check:', {
+  clientIdExists: Boolean(import.meta.env.VITE_CF_ACCESS_CLIENT_ID),
+  secretExists: Boolean(import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET),
+});
+
 /**
- * Simple fetch function for GET requests to avoid triggering CORS preflight
+ * Fetch function for GET requests with Cloudflare Access authentication
  * @param {string} url - URL to fetch
  * @returns {Promise<any>} - Response data
  */
@@ -12,8 +22,14 @@ const simpleFetch = async (url) => {
   try {
     console.log(`[bookService] GET Fetching: ${url}`);
     
-    // Absolutely minimal fetch - no custom headers, no options that trigger preflight
-    const response = await fetch(url);
+    // Add Cloudflare Access service token authentication
+    const response = await fetch(url, {
+      credentials: 'include', // Important for cookie-based auth
+      headers: {
+        'CF-Access-Client-Id': CF_ACCESS_CLIENT_ID,
+        'CF-Access-Client-Secret': CF_ACCESS_CLIENT_SECRET
+      }
+    });
     
     // Check for HTTP errors
     if (!response.ok) {
@@ -27,7 +43,7 @@ const simpleFetch = async (url) => {
     console.error('[bookService] Fetch error:', error);
     
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      throw new Error('Network error: Make sure CORS is enabled on the workers');
+      throw new Error('Network error: Make sure Cloudflare Access is configured correctly');
     }
     
     throw error;
@@ -137,12 +153,15 @@ export const fetchBookEmojis = async (description, title, author) => {
       return null;
     }
     
-    // Call the emoji generator worker
+    // Call the emoji generator worker with Cloudflare Access authentication
     console.log('[bookService] Calling emoji generator API with POST request');
     const response = await fetch(`${EMOJI_GENERATOR_API}/generate-emojis`, {
       method: 'POST',
+      credentials: 'include', // Important for cookie-based auth
       headers: {
         'Content-Type': 'application/json',
+        'CF-Access-Client-Id': CF_ACCESS_CLIENT_ID,
+        'CF-Access-Client-Secret': CF_ACCESS_CLIENT_SECRET
       },
       body: JSON.stringify({
         description,
