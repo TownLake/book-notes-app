@@ -1,15 +1,16 @@
 // book-notes-app/src/services/bookService.js
 const BOOK_FINDER_API = 'https://book-finder.samrhea.workers.dev';
 const AMAZON_SCRAPER_API = 'https://amazon-product-scraper.samrhea.workers.dev';
+const EMOJI_GENERATOR_API = 'https://emoji-generator.samrhea.workers.dev';
 
 /**
- * Most basic fetch function possible to avoid triggering CORS preflight
+ * Simple fetch function for GET requests to avoid triggering CORS preflight
  * @param {string} url - URL to fetch
  * @returns {Promise<any>} - Response data
  */
 const simpleFetch = async (url) => {
   try {
-    console.log(`Fetching: ${url}`);
+    console.log(`[bookService] GET Fetching: ${url}`);
     
     // Absolutely minimal fetch - no custom headers, no options that trigger preflight
     const response = await fetch(url);
@@ -23,7 +24,7 @@ const simpleFetch = async (url) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('[bookService] Fetch error:', error);
     
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Network error: Make sure CORS is enabled on the workers');
@@ -48,10 +49,10 @@ export const findBookUrl = async (title, author = '', format = '') => {
     if (format) query += ` ${format}`;
     
     const url = `${BOOK_FINDER_API}/search?query=${encodeURIComponent(query)}&store=amazon`;
-    console.log('Calling BookFinder API:', url);
+    console.log('[bookService] Calling BookFinder API:', url);
     
     const data = await simpleFetch(url);
-    console.log('BookFinder API response data:', data);
+    console.log('[bookService] BookFinder API response data:', data);
     
     if (data.error) {
       throw new Error(`BookFinder API returned error: ${data.error}`);
@@ -63,7 +64,7 @@ export const findBookUrl = async (title, author = '', format = '') => {
     
     return data.bookLink.url;
   } catch (error) {
-    console.error('Error finding book URL:', error);
+    console.error('[bookService] Error finding book URL:', error);
     throw error;
   }
 };
@@ -76,10 +77,10 @@ export const findBookUrl = async (title, author = '', format = '') => {
 export const fetchBookMetadata = async (amazonUrl) => {
   try {
     const url = `${AMAZON_SCRAPER_API}/scrape?url=${encodeURIComponent(amazonUrl)}`;
-    console.log('Calling Amazon Scraper API:', url);
+    console.log('[bookService] Calling Amazon Scraper API:', url);
 
     const data = await simpleFetch(url);
-    console.log('Amazon Scraper API response data:', data);
+    console.log('[bookService] Amazon Scraper API response data:', data);
 
     if (data.error) {
       throw new Error(`Amazon Scraper API returned error: ${data.error}`);
@@ -87,7 +88,7 @@ export const fetchBookMetadata = async (amazonUrl) => {
 
     return data;
   } catch (error) {
-    console.error('Error fetching book metadata:', error);
+    console.error('[bookService] Error fetching book metadata:', error);
     throw error;
   }
 };
@@ -103,14 +104,81 @@ export const findBookAndMetadata = async (title, author = '', format = '') => {
   try {
     // Step 1: Get Amazon URL for the book
     const amazonUrl = await findBookUrl(title, author, format);
-    console.log('Found Amazon URL:', amazonUrl);
+    console.log('[bookService] Found Amazon URL:', amazonUrl);
     
     // Step 2: Use the URL to fetch metadata
     const metadata = await fetchBookMetadata(amazonUrl);
+    console.log('[bookService] Retrieved metadata:', metadata);
     
     return metadata;
   } catch (error) {
-    console.error('Error in complete book lookup workflow:', error);
+    console.error('[bookService] Error in complete book lookup workflow:', error);
     throw error;
   }
+};
+
+/**
+ * Fetches thematic emojis for a book based on its description
+ * @param {string} description - Book description
+ * @param {string} title - Book title
+ * @param {string} author - Book author
+ * @returns {Promise<string>} - Two emojis that represent the book
+ */
+export const fetchBookEmojis = async (description, title, author) => {
+  try {
+    console.log('[bookService] fetchBookEmojis called with:', { 
+      title, 
+      author, 
+      descriptionPreview: description ? description.substring(0, 50) + '...' : 'null' 
+    });
+    
+    if (!description || description === 'Not found') {
+      console.log('[bookService] No description available for emoji generation, returning null');
+      return null;
+    }
+    
+    // Call the emoji generator worker
+    console.log('[bookService] Calling emoji generator API with POST request');
+    const response = await fetch(`${EMOJI_GENERATOR_API}/generate-emojis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        description,
+        title,
+        author
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[bookService] Error from emoji API:', response.status, errorText);
+      return null;
+    }
+    
+    const data = await response.json();
+    console.log('[bookService] Emoji API response:', data);
+    
+    if (data && data.emojis) {
+      console.log('[bookService] Successfully retrieved emojis:', data.emojis);
+      return data.emojis;
+    } else {
+      console.warn('[bookService] Emoji API returned unexpected structure:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('[bookService] Error fetching book emojis:', error);
+    return null;
+  }
+};
+
+/**
+ * Gets random book-related emojis as a fallback
+ * @returns {string} - Two random book-related emojis
+ */
+export const getRandomBookEmojis = () => {
+  const bookEmojis = ['📚', '📖', '📘', '📕', '📙', '📗', '🧠', '✍️', '🔖', '📝', '🧐', '🤓', '👓', '🖋️'];
+  const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
+  return `${getRandomEmoji()}${getRandomEmoji()}`;
 };

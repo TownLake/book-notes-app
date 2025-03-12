@@ -1,55 +1,7 @@
 // File: book-notes-app/src/utils/generateMarkdown.js
 // Path: book-notes-app/src/utils/generateMarkdown.js
 import { format as formatDate } from 'date-fns';
-
-/**
- * Fetches thematic emojis for a book based on its description
- * @param {string} description - Book description
- * @param {string} title - Book title
- * @param {string} author - Book author
- * @returns {Promise<string>} - Two emojis that represent the book
- */
-export const fetchBookEmojis = async (description, title, author) => {
-  try {
-    if (!description || description === 'Not found') {
-      return null;
-    }
-    
-    // Call the emoji generator worker
-    const response = await fetch('https://emoji-generator.samrhea.workers.dev/generate-emojis', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        description,
-        title,
-        author
-      }),
-    });
-    
-    if (!response.ok) {
-      console.error('Error fetching book emojis:', await response.text());
-      return null;
-    }
-    
-    const data = await response.json();
-    return data.emojis;
-  } catch (error) {
-    console.error('Error fetching book emojis:', error);
-    return null;
-  }
-};
-
-/**
- * Gets random book-related emojis as a fallback
- * @returns {string} - Two random book-related emojis
- */
-const getRandomBookEmojis = () => {
-  const bookEmojis = ['📚', '📖', '📘', '📕', '📙', '📗', '🧠', '✍️', '🔖', '📝', '🧐', '🤓', '👓', '🖋️'];
-  const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
-  return `${getRandomEmoji()}${getRandomEmoji()}`;
-};
+import { fetchBookEmojis, getRandomBookEmojis } from '../services/bookService';
 
 /**
  * Generates markdown template for book notes with proper casing for titles and authors
@@ -147,7 +99,7 @@ ${notes ? notes.split('\n').map(note => `* ${note}`).join('\n') : '* [Your notes
  */
 export const generateMarkdownWithMetadata = async (formData, metadata) => {
   try {
-    console.log('Generating markdown with metadata:', metadata);
+    console.log('[generateMarkdown] Generating markdown with metadata:', metadata);
     
     // Extract title and author from metadata if available (with fallbacks)
     const title = (metadata.title && metadata.title !== 'Not found') 
@@ -158,8 +110,8 @@ export const generateMarkdownWithMetadata = async (formData, metadata) => {
       ? metadata.author 
       : formData.author;
     
-    console.log('Using title from metadata:', title);
-    console.log('Using author from metadata:', author);
+    console.log('[generateMarkdown] Using title from metadata:', title);
+    console.log('[generateMarkdown] Using author from metadata:', author);
     
     // Get book description from metadata
     const description = metadata.description !== 'Not found' ? metadata.description : null;
@@ -167,9 +119,11 @@ export const generateMarkdownWithMetadata = async (formData, metadata) => {
     // Fetch thematic emojis based on description
     let bookEmojis = null;
     if (description) {
-      console.log('Fetching thematic emojis for book based on description');
+      console.log('[generateMarkdown] Fetching thematic emojis for book based on description');
       bookEmojis = await fetchBookEmojis(description, title, author);
-      console.log('Generated book emojis:', bookEmojis);
+      console.log('[generateMarkdown] Generated book emojis:', bookEmojis);
+    } else {
+      console.log('[generateMarkdown] No description available, skipping emoji fetch');
     }
     
     // Clean metadata values
@@ -194,12 +148,12 @@ export const generateMarkdownWithMetadata = async (formData, metadata) => {
     };
     
     // Log the final data to verify title and author are correct
-    console.log('Final enriched data for markdown:', enrichedData);
+    console.log('[generateMarkdown] Final enriched data for markdown:', enrichedData);
     
     // Use the original function with enriched data
     return generateMarkdown(enrichedData);
   } catch (error) {
-    console.error('Error generating markdown with metadata:', error);
+    console.error('[generateMarkdown] Error generating markdown with metadata:', error);
     // Fall back to basic template if there's an error
     return generateMarkdown(formData);
   }
