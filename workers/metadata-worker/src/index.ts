@@ -31,7 +31,7 @@ export class AmazonScraperAgent extends Agent<Env, {}> {
       return new Response(null, {
         status: 204,
         headers: {
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true",
@@ -45,7 +45,7 @@ export class AmazonScraperAgent extends Agent<Env, {}> {
     return new Response('Agent running', { 
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+        "Access-Control-Allow-Origin": "https://read.samrhea.com",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
         "Access-Control-Allow-Credentials": "true"
@@ -69,7 +69,7 @@ class AmazonScraper {
         return new Response(null, {
           status: 204,
           headers: {
-            "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+            "Access-Control-Allow-Origin": "https://read.samrhea.com",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
             "Access-Control-Allow-Credentials": "true",
@@ -92,7 +92,7 @@ class AmazonScraper {
             status: 400,
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -108,7 +108,7 @@ class AmazonScraper {
             status: 400,
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -125,7 +125,7 @@ class AmazonScraper {
             status: 500,
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -140,7 +140,7 @@ class AmazonScraper {
           return new Response(JSON.stringify(productData), {
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -156,7 +156,7 @@ class AmazonScraper {
             status: 500,
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -172,7 +172,7 @@ class AmazonScraper {
       }), {
         headers: { 
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true"
@@ -188,7 +188,7 @@ class AmazonScraper {
         status: 500,
         headers: { 
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true"
@@ -346,7 +346,7 @@ export default {
         return new Response(null, {
           status: 204,
           headers: {
-            "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+            "Access-Control-Allow-Origin": "https://read.samrhea.com",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
             "Access-Control-Allow-Credentials": "true",
@@ -368,7 +368,7 @@ export default {
             status: 500,
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+              "Access-Control-Allow-Origin": "https://read.samrhea.com",
               "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
               "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
               "Access-Control-Allow-Credentials": "true"
@@ -388,7 +388,7 @@ export default {
           // Make sure the agent response has CORS headers
           const originalHeaders = agentResponse.headers;
           const newHeaders = new Headers(originalHeaders);
-          newHeaders.set("Access-Control-Allow-Origin", "https://try-agents.book-notes-app.pages.dev");
+          newHeaders.set("Access-Control-Allow-Origin", "https://read.samrhea.com");
           newHeaders.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
           newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret");
           newHeaders.set("Access-Control-Allow-Credentials", "true");
@@ -412,7 +412,7 @@ export default {
         status: 404,
         headers: { 
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true"
@@ -428,7 +428,7 @@ export default {
         status: 500,
         headers: { 
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true"

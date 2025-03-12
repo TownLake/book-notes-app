@@ -8,7 +8,7 @@ export default {
       return new Response(null, {
         status: 204,
         headers: {
-          "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+          "Access-Control-Allow-Origin": "https://read.samrhea.com",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
           "Access-Control-Allow-Credentials": "true",
@@ -109,7 +109,7 @@ function jsonResponse(data, status = 200) {
     status,
     headers: { 
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "https://try-agents.book-notes-app.pages.dev",
+      "Access-Control-Allow-Origin": "https://read.samrhea.com",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Cache-Control, Pragma, Expires, Accept, Authorization, X-Requested-With, CF-Access-Client-Id, CF-Access-Client-Secret",
       "Access-Control-Allow-Credentials": "true"
