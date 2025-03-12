@@ -1,6 +1,13 @@
-// book-notes-app/src/utils/generateMarkdown.js
+// File: book-notes-app/src/utils/generateMarkdown.js
+// Path: book-notes-app/src/utils/generateMarkdown.js
 import { format as formatDate } from 'date-fns';
+import { fetchBookEmojis, getRandomBookEmojis } from '../services/bookService';
 
+/**
+ * Generates markdown template for book notes with proper casing for titles and authors
+ * @param {Object} bookData - Book data from form and/or metadata
+ * @returns {string} - Generated markdown content
+ */
 export const generateMarkdown = (bookData) => {
   const { 
     title, 
@@ -8,20 +15,30 @@ export const generateMarkdown = (bookData) => {
     dateStarted, 
     dateFinished, 
     placesRead, 
-    format 
+    format,
+    // Metadata fields from Amazon
+    yearPublished,
+    pageLength,
+    asin,
+    description: apiDescription, // API-sourced description
+    // New fields
+    frontmatterDescription, // Form-input description for frontmatter
+    whyReadIt,
+    notes,
+    // New emoji field
+    bookEmojis
   } = bookData;
   
   // Generate slug from title and current year
   const currentYear = new Date().getFullYear();
-  const slug = `/posts/${currentYear}/${title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}`;
+  const titleForSlug = title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+  const slug = `/posts/${currentYear}/${titleForSlug}`;
   
   // Format dates for display
   const formattedDateFinished = formatDate(new Date(dateFinished), 'yyyy-MM-dd');
   
-  // Create emoji prefix (random book-related emoji combination)
-  const bookEmojis = ['📚', '📖', '📘', '📕', '📙', '📗', '🧠', '✍️', '🔖', '📝', '🧐', '🤓', '👓', '🖋️'];
-  const getRandomEmoji = () => bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
-  const emojiPrefix = `${getRandomEmoji()}${getRandomEmoji()}`;
+  // Use provided book emojis or random fallback
+  const emojiPrefix = bookEmojis || getRandomBookEmojis();
   
   const markdown = `---
 title: "${emojiPrefix} ${title} by ${author}"
@@ -33,29 +50,33 @@ category: "reading"
 tags:
   - "reading"
   - "books"
-description: "Fun to finally finish it."
+description: "${frontmatterDescription || 'TBD'}"
 ---
 
 > ## Not a Book Report
 > I enjoy [reflecting](https://blog.samrhea.com/posts/2019/analyze-media-habits) on the movies, TV, books and other media that I consume. I'm notoriously sentimental. This [series](https://blog.samrhea.com/category/reading) documents the books that I read. These aren't reviews or recommendations. Just a list. For me. Mostly so that I can page through what I read, where I was, and when.
 
 ## Why did I read it?
-[Your reasons for reading this book]
+
+${whyReadIt || '[To be filled]'}
 
 ## What is it?
+
 |Category|Value|
 |---|---|
 |**Title**|*${title}*|
 |**Author**|${author}|
-|**Year Published**|[To be filled]|
+|**Year Published**|${yearPublished || '[To be filled]'}|
 |**Format**|${format}|
-|**Pages**|[To be filled]|
-|**ASIN**|[To be filled]|
+|**Pages**|${pageLength || '[To be filled]'}|${asin && asin !== 'Not found' ? `\n|**Amazon**|[Link](https://www.amazon.com/dp/${asin}/)` : ''}
+|**ASIN**|${asin && asin !== 'Not found' ? asin : '[To be filled]'}|
 
 ### Publisher Summary
-[Publisher summary to be filled]
+
+${apiDescription && apiDescription !== 'Not found' ? apiDescription : '[Publisher summary to be filled]'}
 
 ## How did I read it?
+
 |Category|Value|
 |---|---|
 |**Date Started**|${dateStarted ? formatDate(new Date(dateStarted), 'MMMM d, yyyy') : '[To be filled]'}|
@@ -63,8 +84,77 @@ description: "Fun to finally finish it."
 |**Places Read**|${placesRead || '[To be filled]'}|
 
 ## Notes - No Spoilers
-* [Your notes here]
+
+${notes ? notes.split('\n').map(note => `* ${note}`).join('\n') : '* [Your notes here]'}
 `;
 
   return markdown;
+};
+
+/**
+ * Generates markdown with fetched metadata and thematic emojis
+ * @param {Object} formData - Form data
+ * @param {Object} metadata - Fetched metadata from Amazon
+ * @returns {Promise<string>} - Generated markdown content
+ */
+export const generateMarkdownWithMetadata = async (formData, metadata) => {
+  try {
+    console.log('[generateMarkdown] Generating markdown with metadata:', metadata);
+    
+    // Extract title and author from metadata if available (with fallbacks)
+    const title = (metadata.title && metadata.title !== 'Not found') 
+      ? metadata.title 
+      : formData.title;
+      
+    const author = (metadata.author && metadata.author !== 'Not found') 
+      ? metadata.author 
+      : formData.author;
+    
+    console.log('[generateMarkdown] Using title from metadata:', title);
+    console.log('[generateMarkdown] Using author from metadata:', author);
+    
+    // Get book description from metadata
+    const description = metadata.description !== 'Not found' ? metadata.description : null;
+    
+    // Fetch thematic emojis based on description
+    let bookEmojis = null;
+    if (description) {
+      console.log('[generateMarkdown] Fetching thematic emojis for book based on description');
+      bookEmojis = await fetchBookEmojis(description, title, author);
+      console.log('[generateMarkdown] Generated book emojis:', bookEmojis);
+    } else {
+      console.log('[generateMarkdown] No description available, skipping emoji fetch');
+    }
+    
+    // Clean metadata values
+    const cleanMetadata = {
+      title: title, // Explicitly use the metadata title
+      author: author, // Explicitly use the metadata author
+      yearPublished: metadata.yearPublished !== 'Not found' ? metadata.yearPublished : '',
+      pageLength: metadata.pageLength !== 'Not found' ? metadata.pageLength : '',
+      asin: metadata.asin !== 'Not found' ? metadata.asin : '',
+      description: metadata.description !== 'Not found' ? metadata.description : '',
+      bookEmojis: bookEmojis // Add the generated emojis
+    };
+    
+    // Create a new object with form data and metadata
+    // IMPORTANT: Override the title and author from the form with the values from metadata
+    const enrichedData = {
+      ...formData,
+      ...cleanMetadata,
+      // Ensure these override any values from formData
+      title: cleanMetadata.title,
+      author: cleanMetadata.author
+    };
+    
+    // Log the final data to verify title and author are correct
+    console.log('[generateMarkdown] Final enriched data for markdown:', enrichedData);
+    
+    // Use the original function with enriched data
+    return generateMarkdown(enrichedData);
+  } catch (error) {
+    console.error('[generateMarkdown] Error generating markdown with metadata:', error);
+    // Fall back to basic template if there's an error
+    return generateMarkdown(formData);
+  }
 };

@@ -1,0 +1,27 @@
+{
+    "name": "book-finder",
+    "main": "src/index.ts",
+    "compatibility_date": "2025-03-07",
+    "compatibility_flags": ["nodejs_compat"],
+    "browser": {
+      "binding": "BROWSER"
+    },
+    "durable_objects": {
+      "bindings": [
+        {
+          "name": "BookFinderAgent",
+          "class_name": "BookFinder"
+        }
+      ]
+    },
+    "migrations": [
+      {
+        "tag": "v1",
+        "new_sqlite_classes": ["BookFinder"]
+      }
+    ],
+    "observability": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    }
+  }
